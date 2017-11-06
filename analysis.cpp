@@ -50,9 +50,12 @@
 	
 	
 
-	
-	// Function to compute calibration charge
-	
+	// Coincidence function void coincidence(int* time_list1, int* time_list2, int* time_list3, int* channel_list1, int* channel_list2, int* channel_list3)
+
+	bool gtx_ltz ( int x, int y, int z)
+	{
+		return ((x <= y) && (y <= z));
+	}
 	
 	void addDoubleToXml ( ofstream *xml, uint indent, string variable, Double_t value ) {
 	uint x;
@@ -91,7 +94,7 @@
 	
 	
 	
-	TPolyLine3D *track_plot = new TPolyLine3D(3);
+	//TPolyLine3D *track_plot = new TPolyLine3D(3);
 		
 		
 	DataRead               dataRead;
@@ -106,8 +109,6 @@
 	bool                   bucketFound[32][1024][4];
 	bool                   chanFound[32][1024];
 	bool                   kpixFound[32];
-	uint                   minChan;
-	uint                   maxChan;
 	uint                   x;
 	uint                   range;
 	uint                   value;
@@ -149,44 +150,17 @@
 	string                 outXml;
 	string                 outCsv;
 	TFile                  *rFile;
-	TCanvas                *c1;
 	stringstream           crossString;
 	stringstream           crossStringCsv;
 	XmlVariables           config;
-	bool                   findBadMeanHist;
-	bool                   findBadMeanFit;
-	bool                   findBadMeanChisq;
-	bool                   findBadGainFit;
-	bool                   findBadGainChisq;
-	double                 meanMin[2];
-	double                 meanMax[2];
-	double                 meanChisq;
-	double                 gainMin[2];
-	double                 gainMax[2];
-	double                 chargeError[2];
-	double                 gainChisq;
-	double                 fitMin[2];
-	double                 fitMax[2];
 	ofstream               debug;
 	ofstream				channel_file_bad;
 	ofstream				channel_file_bad_fit;
 	ofstream				channel_file_noise;
 	ofstream				channel_file_calib;
 	ofstream 				channel_file_adc_mean;
-	uint                   badTimes;
-	uint                   goodTimes;
-	uint                   badMeanFitCnt;
-	uint                   badMeanHistCnt;
-	uint                   badMeanChisqCnt;
-	uint                   badGainFitCnt;
-	uint                   badGainChisqCnt;
-	uint                   failedGainFit;
-	uint                   failedMeanFit;
-	uint                   badChannelCnt;
-	uint					noiseSigmaCnt;
-	uint                    errorSigmaCnt;
-	double 					calib_slope[1024];
-	double					calib_y0[1024];
+	//double 					calib_slope[1024];
+	//double					calib_y0[1024];
 	pixel					pixel_kpix[1024];
 	pixel_mapping(pixel_kpix);
 	
@@ -210,8 +184,8 @@
 	//}
 	
 	//if ( argc == 4 ) debug.open(argv[3],ios::out | ios::trunc);
-	bool calibration_check = 0;
-	if ( argc == 4 ) calibration_check = 1;
+	//bool calibration_check = 0;
+	//if ( argc == 4 ) calibration_check = 1;
 	
 	// Read configuration
 	//if ( ! config.parseFile("config",argv[1]) ) {
@@ -225,27 +199,27 @@
 	//}
 	
 	// Extract configuration values
-	findBadMeanHist  = config.getInt("FindBadMeanHist");
-	findBadMeanFit   = config.getInt("FindBadMeanFit");
-	meanMin[0]       = config.getDouble("GoodMeanMinR0");
-	meanMax[0]       = config.getDouble("GoodMeanMaxR0");
-	meanMin[1]       = config.getDouble("GoodMeanMinR1");
-	meanMax[1]       = config.getDouble("GoodMeanMaxR1");
-	findBadMeanChisq = config.getInt("FindBadMeanChisq");
-	meanChisq        = config.getInt("GoodMeanChisqMax");
-	findBadGainFit   = config.getInt("FindBadGainFit");
-	gainMin[0]       = config.getDouble("GoodGainMinR0");
-	gainMax[0]       = config.getDouble("GoodGainMaxR0");
-	gainMin[1]       = config.getDouble("GoodGainMinR1");
-	gainMax[1]       = config.getDouble("GoodGainMaxR1");
-	findBadGainChisq = config.getInt("FindBadGainChisq");
-	gainChisq        = config.getInt("GoodGainChisqMax");
-	fitMin[0]        = config.getDouble("GainFitMinR0");
-	fitMax[0]        = config.getDouble("GainFitMaxR0");
-	fitMin[1]        = config.getDouble("GainFitMinR1");
-	fitMax[1]        = config.getDouble("GainFitMaxR1");
-	chargeError[0]   = config.getDouble("GainChargeErrorR0");
-	chargeError[1]   = config.getDouble("GainChargeErrorR1");
+	//findBadMeanHist  = config.getInt("FindBadMeanHist");
+	//findBadMeanFit   = config.getInt("FindBadMeanFit");
+	//meanMin[0]       = config.getDouble("GoodMeanMinR0");
+	//meanMax[0]       = config.getDouble("GoodMeanMaxR0");
+	//meanMin[1]       = config.getDouble("GoodMeanMinR1");
+	//meanMax[1]       = config.getDouble("GoodMeanMaxR1");
+	//findBadMeanChisq = config.getInt("FindBadMeanChisq");
+	//meanChisq        = config.getInt("GoodMeanChisqMax");
+	//findBadGainFit   = config.getInt("FindBadGainFit");
+	//gainMin[0]       = config.getDouble("GoodGainMinR0");
+	//gainMax[0]       = config.getDouble("GoodGainMaxR0");
+	//gainMin[1]       = config.getDouble("GoodGainMinR1");
+	//gainMax[1]       = config.getDouble("GoodGainMaxR1");
+	//findBadGainChisq = config.getInt("FindBadGainChisq");
+	//gainChisq        = config.getInt("GoodGainChisqMax");
+	//fitMin[0]        = config.getDouble("GainFitMinR0");
+	//fitMax[0]        = config.getDouble("GainFitMaxR0");
+	//fitMin[1]        = config.getDouble("GainFitMinR1");
+	//fitMax[1]        = config.getDouble("GainFitMaxR1");
+	//chargeError[0]   = config.getDouble("GainChargeErrorR0");
+	//chargeError[1]   = config.getDouble("GainChargeErrorR1");
 	
 	// Open data file
 	if ( ! dataRead.open(argv[1])  ) {
@@ -300,26 +274,26 @@
 	// Init
 	currPct          	= 0;
 	lastPct          	= 100;
-	eventCount       	= 0;
-	minChan          	= 0;
-	maxChan          	= 0;
-	badTimes         	= 0;
-	badMeanFitCnt    	= 0;
-	badMeanHistCnt   	= 0;
-	badMeanChisqCnt  	= 0;
-	badGainFitCnt    	= 0;
-	badGainChisqCnt 	= 0;
-	failedGainFit   	= 0;
-	failedMeanFit   	= 0;
-	badChannelCnt   	= 0;
-	noiseSigmaCnt		= 0;
-	errorSigmaCnt		= 0;
+	//int eventCount     	= 0;
+	//minChan          	= 0;
+	//maxChan          	= 0;
+	//badTimes         	= 0;
+	//badMeanFitCnt    	= 0;
+	//badMeanHistCnt   	= 0;
+	//badMeanChisqCnt  	= 0;
+	//badGainFitCnt    	= 0;
+	//badGainChisqCnt 	= 0;
+	//failedGainFit   	= 0;
+	//failedMeanFit   	= 0;
+	//badChannelCnt   	= 0;
+	//noiseSigmaCnt		= 0;
+	//errorSigmaCnt		= 0;
 	cout << "\rReading File: 0 %" << flush;
-	goodTimes       	= 0;
+	//goodTimes       	= 0;
 	
 	
 	// Default canvas
-	c1 = new TCanvas("c1","c1");
+	//c1 = new TCanvas("c1","c1");
 	
 	// Open root file
 	rFile = new TFile(outRoot.c_str(),"recreate");
@@ -352,16 +326,16 @@
 	TH1F *beam_ext_time_diff_865 = new TH1F("beam_ext_time_diff_865", "beam_ext_time_diff_865; #Delta T/bunchClkCount; # entries", 17000, -8192, 8191.5);
 	TH1F *beam_ext_time_diff_801 = new TH1F("beam_ext_time_diff_801", "beam_ext_time_diff_801; #Delta T/bunchClkCount; # entries", 17000, -8192, 8191.5);
 	
-	TH2F *k28_k30_x_correlation = new TH2F ("x_correlation_k28_k30", "x_correlation_k28_k30; x28/column_width; x30/column_width ", 38,0.5,19,38,0.5,19); 
-	TH2F *k28_k30_y_correlation = new TH2F ("y_correlation_k28_k30", "y_correlation_k28_k30; x28/row_width; x30/row_width", 40,-18,13,40,-18,13); 
+	//TH2F *k28_k30_x_correlation = new TH2F ("x_correlation_k28_k30", "x_correlation_k28_k30; x28/column_width; x30/column_width ", 38,0.5,19,38,0.5,19); 
+	//TH2F *k28_k30_y_correlation = new TH2F ("y_correlation_k28_k30", "y_correlation_k28_k30; x28/row_width; x30/row_width", 40,-18,13,40,-18,13); 
 	TH2F *k30_map = new TH2F ("k30_map", "k30_map; x30/column_width; x30/row_width",38,0.5,19,40,-18,13);
 	
-	TH2F *k26_k30_x_correlation = new TH2F ("x_correlation_k26_k30", "x_correlation_k26_k30; x26/column_width; x30/column_width ", 38,0.5,19,38,0.5,19); 
-	TH2F *k26_k30_y_correlation = new TH2F ("y_correlation_k26_k30", "y_correlation_k26_k30; x26/row_width; x30/row_width", 40,-18,13,40,-18,13); 
+	//TH2F *k26_k30_x_correlation = new TH2F ("x_correlation_k26_k30", "x_correlation_k26_k30; x26/column_width; x30/column_width ", 38,0.5,19,38,0.5,19); 
+	//TH2F *k26_k30_y_correlation = new TH2F ("y_correlation_k26_k30", "y_correlation_k26_k30; x26/row_width; x30/row_width", 40,-18,13,40,-18,13); 
 	TH2F *k26_map = new TH2F ("k26_map", "k26_map; x26/column_width; x26/row_width",38,0.5,19,40,-18,13);
 	
-	TH2F *k26_k28_x_correlation = new TH2F ("x_correlation_k26_k28", "x_correlation_k28_k30; x26/column_width; x28/column_width ", 38,0.5,19,38,0.5,19); 
-	TH2F *k26_k28_y_correlation = new TH2F ("y_correlation_k26_k28", "y_correlation_k26_k28; x26/row_width; x28/row_width", 40,-18,13,40,-18,13); 
+	//TH2F *k26_k28_x_correlation = new TH2F ("x_correlation_k26_k28", "x_correlation_k28_k30; x26/column_width; x28/column_width ", 38,0.5,19,38,0.5,19); 
+	//TH2F *k26_k28_y_correlation = new TH2F ("y_correlation_k26_k28", "y_correlation_k26_k28; x26/row_width; x28/row_width", 40,-18,13,40,-18,13); 
 	TH2F *k28_map = new TH2F ("k28_map", "k28_map; x28/column_width; x28/row_width",38,0.5,19,40,-18,13);
 	
 	TH1F *k26_x = new TH1F ("k26_x", "k26_x; x26/column_width; #entries ",38,0.5,19);
@@ -371,6 +345,8 @@
 	TH1F *k26_y = new TH1F ("k26_y", "k26_y; y26/row_width; #entries ",40,-18,13);
 	TH1F *k28_y = new TH1F ("k28_y", "k28_y; y28/row_width; #entries ",40,-18,13);
 	TH1F *k30_y = new TH1F ("k30_y", "k30_y; y30/row_width; #entries ",40,-18,13);
+	
+	//TH1F *hist_matched[kpix][channel][bucket][0] = new TH1F(tmp.str().c_str(),tmp_units.str().c_str(),8192, -0.5,8191.5);
 	
 	TH1F *ExtTrigPerCycle = new TH1F ("external_triggers_per_cycle", "ext_trig_per_acq.; #ext_triggers_per_acq.cycle; #entries ",50,0.5,99.5);
 	
@@ -389,6 +365,7 @@
 			kpix    = sample->getKpixAddress();
 			channel = sample->getKpixChannel();
 			bucket  = sample->getKpixBucket();
+			type    = sample->getSampleType();
 			if ( type == KpixSample::Data ) 
 			{
 				kpixFound[kpix]          = true;
@@ -402,19 +379,19 @@
 	}
 	dataRead.close();
 	range = 0;
-	for (int u = 0; u<32; ++u)
-	{
-		if (kpixFound[u])
-		{
-			for (int j =0; j<1024; ++j)
-			{
-				if (chanFound[u][j] == 0)
-				{
-					cout << "DEBBUG  KPIX: " << u << " Channel: " << j << endl;
-				}
-			}
-		}
-	}
+	//for (int u = 0; u<32; ++u)
+	//{
+		//if (kpixFound[u])
+		//{
+			//for (int j =0; j<1024; ++j)
+			//{
+				//if (chanFound[u][j] == 0)
+				//{
+					//cout << "DEBUG  KPIX: " << u << " Channel: " << j << endl;
+				//}
+			//}
+		//}
+	//}
 	
 	double weight = 1.0/acquisitionCount;
 	int monster_counter_k30 = 0;
@@ -650,12 +627,17 @@
 	dataRead.close();
 	dataRead.open(argv[1]);
 	
+	int two_coincidence = 0;
+	int three_coincidence = 0;
+	
 	event_num = 0;
 	while ( dataRead.next(&event) ) 
 	{
 		std::vector<double> time_ext;
 		std::vector<int> channel_hits[32];
 		std::vector<int> timestamp[32];
+		std::vector<int> adc_value[32];
+		
 		//std::vector<int> Assignment_number;
 		int num_trig_count_k26[5] = {0};
 		int num_trig_count_k28[5] = {0};
@@ -673,7 +655,10 @@
 			tstamp  = sample->getSampleTime();
 			range   = sample->getSampleRange();
 			
-			
+			//cout << "DEBUG kpix " << kpix << endl; 
+			//cout << "DEBUG channel " << channel << endl;
+			//cout << "DEBUG bucket " << bucket << endl;
+			//cout << "Debug timestamp " << tstamp << endl;
 			
 			
 			
@@ -694,6 +679,7 @@
 
 					channel_hits[kpix].push_back(channel);
 					timestamp[kpix].push_back(tstamp);
+					adc_value[kpix].push_back(value);
 					time_kpix->Fill(tstamp, weight);
 
 					
@@ -950,6 +936,44 @@
 		//}
 		
 		
+		// ======== Triggering efficiency ===========
+		std::vector<int> matched_time;
+		std::vector<int> matched_channel;
+		int map_range = 2;
+		//for (int j = 0; j < adc_value[26].size(); ++j)
+		//{
+			//for (int i = 0; i < adc_value[28].size(); ++i)
+			//{
+				//for (int q = 0; q < adc_value[30].size(); ++q)
+				//{
+					//if ((timestamp[26].at(j) == timestamp[28].at(i)) && (timestamp[26].at(j) == timestamp[30].at(q)) && (channel_list[26].at(j) == channel_list[28].at(i)) && (channel_list[26].at(j) == channel_list[30].at(q))) three_coincidence++;
+					//if ((timestamp[26].at(j) == timestamp[28].at(i)) && (timestamp[26].at(j) != timestamp[30].at(q)) && (channel_list[26].at(j) == channel_list[28].at(i)) && (channel_list[26].at(j) != channel_list[30].at(q))) two_coincidence++;
+					//if ((timestamp[26].at(j) == timestamp[30].at(q)) && (timestamp[26].at(j) != timestamp[28].at(i)) && (channel_list[26].at(j) == channel_list[30].at(q)) && (channel_list[26].at(j) != channel_list[28].at(i))) two_coincidence++;
+					//if ((timestamp[28].at(i) == timestamp[30].at(q)) && (timestamp[26].at(j) != timestamp[28].at(i)) && (channel_list[28].at(i) == channel_list[30].at(q)) && (channel_list[26].at(j) != channel_list[28].at(i))) two_coincidence++;
+				//}
+			//}
+		//}
+		
+		for (int j = 0; j < adc_value[26].size(); ++j)
+		{
+			for (int i = 0; i < adc_value[28].size(); ++i)
+			{
+				if ((timestamp[26].at(j) == timestamp[28].at(i)) && (gtx_ltz(pixel_kpix[channel_hits[28].at(i)].x-map_range, pixel_kpix[channel_hits[26].at(j)].x, pixel_kpix[(channel_hits[28].at(i))].x+map_range)) && (gtx_ltz(pixel_kpix[channel_hits[28].at(i)].y-map_range, pixel_kpix[channel_hits[26].at(j)].y, pixel_kpix[(channel_hits[28].at(i))].y+map_range))) 
+				{
+					matched_time.push_back(timestamp[26].at(j));
+					matched_channel.push_back(channel_hits[26].at(j));
+				}
+			}
+		}
+		for (int j = 0; j < matched_time.size(); j++)
+		{
+			for (int i = 0; i < adc_value[30].size(); ++i)
+			{
+				if ((matched_time.at(j) == timestamp[30].at(i)) &&  (gtx_ltz(pixel_kpix[channel_hits[30].at(i)].x-map_range, pixel_kpix[matched_channel.at(j)].x, pixel_kpix[(channel_hits[30].at(i))].x+map_range)) && (gtx_ltz(pixel_kpix[channel_hits[30].at(i)].y-map_range, pixel_kpix[matched_channel.at(j)].y, pixel_kpix[(channel_hits[30].at(i))].y+map_range))) three_coincidence++;
+				else two_coincidence++;
+			}		
+		}
+		
 	  ////   Show progress
 		event_num++;
 		filePos  = dataRead.pos();
@@ -985,6 +1009,8 @@
 	cout << endl << "Number of monster events in k26, k28, k30 = " << monster_counter_k26 << ", " << monster_counter_k28 << ", " << monster_counter_k30 << endl;
 	cout << "Number of normed monster events in k26, k28, k30 = " << monster_counter_k26*weight << ", " << monster_counter_k28*weight << ", " << monster_counter_k30*weight << endl;
 	
+	cout << "Three coincidence of sensors: " << three_coincidence << endl;
+	cout << "Two coincidence of sensors: " << two_coincidence << endl;
 	//cout << "Channel entries in background = " << channel_entries[30]->GetEntries()*weight/(1024) << endl;
     //for (kpix = 0; kpix < 32; kpix++)
     //{

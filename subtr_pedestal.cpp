@@ -91,7 +91,7 @@ int main ( int argc, char **argv ) {
 					else if (str.find("entries_k_30_total") != string::npos && str2.find("entries_k_30_total") != string::npos) 
 					{
 						sum = (h_meas->GetBinContent(k) - h_ped->GetBinContent(k));
-						cout << str << endl;
+						//cout << str << endl;
 						//cout << "DEBUG: sum before monster" << sum << endl;
 						sum = sum - monster_num[2];
 						//cout <<  "DEBUG: sum after monster " << sum << endl;
