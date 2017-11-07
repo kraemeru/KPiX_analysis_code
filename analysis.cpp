@@ -123,6 +123,7 @@
 	//TH1F					*hist_charge[32][1024][4][2];
 	TH1F					*channel_time[32][1024][4][2];
 	TH1F					*channel_entries[32][5];
+	TH1F					*trigger_difference[32];
 	TH1F					*channel_entries_no_monster[32][5];
 	TH1F					*times_kpix[32][5];
 	TH1F					*times_kpix_monster[32][5];
@@ -350,13 +351,15 @@
 	
 	TH1F *ExtTrigPerCycle = new TH1F ("external_triggers_per_cycle", "ext_trig_per_acq.; #ext_triggers_per_acq.cycle; #entries ",50,0.5,99.5);
 	
+	TH1F *three_coincidence_channel_entries= new TH1F("coincidence_channel_entries", "coincidence_channel_entries; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
+	
 	while ( dataRead.next(&event) ) // event read to check for filled channels and kpix to reduce number of histograms.
 	{
 		acquisitionCount++;
-		if ( acquisitionCount < 10)
-		{
-			cout << "DEBUG: EVENTNUMBER " << event.eventNumber() << endl;
-		}
+		//if ( acquisitionCount < 10)
+		//{
+			//cout << "DEBUG: EVENTNUMBER " << event.eventNumber() << endl;
+		//}
 		for (x=0; x < event.count(); x++) 
 		{
 	
@@ -429,7 +432,9 @@
 			tmp.str("");
 			tmp << "trig_count_k" << kpix << "_total";
 			trig_count[kpix][4]  = new TH1F (tmp.str().c_str(), "trig_count;  #triggered channels; #entries ",1024, -0.5, 1023.5);
-			
+			tmp.str("");
+			tmp << "beam_ext_time_diff_" << kpix;
+			trigger_difference[kpix] = new TH1F (tmp.str().c_str(), "intern_extern_trig_diff; #Delta T/bunchClkCount; # entries", 17000, -8192, 8191.5);
 			
 			
 			tmp.str("");
@@ -642,6 +647,7 @@
 		int num_trig_count_k26[5] = {0};
 		int num_trig_count_k28[5] = {0};
 		int num_trig_count_k30[5] = {0};
+		//cout << " NEW EVENT " << endl;
 		for (x=0; x < event.count(); x++) 
 		{
 			//cout << "DEBUG: EVENT COUNT " << event.count() << endl;
@@ -655,10 +661,15 @@
 			tstamp  = sample->getSampleTime();
 			range   = sample->getSampleRange();
 			
-			//cout << "DEBUG kpix " << kpix << endl; 
-			//cout << "DEBUG channel " << channel << endl;
-			//cout << "DEBUG bucket " << bucket << endl;
-			//cout << "Debug timestamp " << tstamp << endl;
+			//if (kpix == 28)
+			//{
+				//cout << "DEBUG kpix " << kpix << endl; 
+				//cout << "DEBUG channel " << channel << endl;
+				//cout << "DEBUG bucket " << bucket << endl;
+				//cout << "Debug timestamp " << tstamp << endl;
+				//cout << "Debug value " << value << endl;
+				//cout << endl;
+			//}
 			
 			
 			
@@ -845,6 +856,9 @@
 						beam_ext_time_diff_801->Fill(trig_diff_801, weight);
 					}
 					beam_ext_time_diff->Fill(trig_diff, weight);
+					if (event.count() < 800) trigger_difference[kpix]->Fill(trig_diff, weight);
+					
+					
 				//}
 				
 			}
@@ -939,7 +953,8 @@
 		// ======== Triggering efficiency ===========
 		std::vector<int> matched_time;
 		std::vector<int> matched_channel;
-		int map_range = 2;
+		int map_range = 1;
+		int time_range = 5;
 		//for (int j = 0; j < adc_value[26].size(); ++j)
 		//{
 			//for (int i = 0; i < adc_value[28].size(); ++i)
@@ -954,25 +969,30 @@
 			//}
 		//}
 		
-		for (int j = 0; j < adc_value[26].size(); ++j)
-		{
-			for (int i = 0; i < adc_value[28].size(); ++i)
-			{
-				if ((timestamp[26].at(j) == timestamp[28].at(i)) && (gtx_ltz(pixel_kpix[channel_hits[28].at(i)].x-map_range, pixel_kpix[channel_hits[26].at(j)].x, pixel_kpix[(channel_hits[28].at(i))].x+map_range)) && (gtx_ltz(pixel_kpix[channel_hits[28].at(i)].y-map_range, pixel_kpix[channel_hits[26].at(j)].y, pixel_kpix[(channel_hits[28].at(i))].y+map_range))) 
-				{
-					matched_time.push_back(timestamp[26].at(j));
-					matched_channel.push_back(channel_hits[26].at(j));
-				}
-			}
-		}
-		for (int j = 0; j < matched_time.size(); j++)
-		{
-			for (int i = 0; i < adc_value[30].size(); ++i)
-			{
-				if ((matched_time.at(j) == timestamp[30].at(i)) &&  (gtx_ltz(pixel_kpix[channel_hits[30].at(i)].x-map_range, pixel_kpix[matched_channel.at(j)].x, pixel_kpix[(channel_hits[30].at(i))].x+map_range)) && (gtx_ltz(pixel_kpix[channel_hits[30].at(i)].y-map_range, pixel_kpix[matched_channel.at(j)].y, pixel_kpix[(channel_hits[30].at(i))].y+map_range))) three_coincidence++;
-				else two_coincidence++;
-			}		
-		}
+		//for (unsigned int j = 0; j < adc_value[26].size(); ++j)
+		//{
+			//for (unsigned int i = 0; i < adc_value[30].size(); ++i)
+			//{
+				//if ((gtx_ltz(timestamp[30].at(i)-time_range, timestamp[26].at(j), timestamp[30].at(i)+time_range)) && (gtx_ltz(pixel_kpix[channel_hits[30].at(i)].x-map_range, pixel_kpix[channel_hits[26].at(j)].x, pixel_kpix[(channel_hits[30].at(i))].x+map_range)) && (gtx_ltz(pixel_kpix[channel_hits[30].at(i)].y-map_range, pixel_kpix[channel_hits[26].at(j)].y, pixel_kpix[(channel_hits[30].at(i))].y+map_range))) 
+				//{
+					//matched_time.push_back(timestamp[26].at(j));
+					//matched_channel.push_back(channel_hits[26].at(j));
+				//}
+			//}
+		//}
+		//for (unsigned int j = 0; j < matched_time.size(); j++)
+		//{
+			//for (unsigned int i = 0; i < adc_value[28].size(); ++i)
+			//{
+				//if ((gtx_ltz(timestamp[28].at(i)-time_range, matched_time.at(j), timestamp[28].at(i)+time_range)) &&  (gtx_ltz(pixel_kpix[channel_hits[28].at(i)].x-map_range, pixel_kpix[matched_channel.at(j)].x, pixel_kpix[(channel_hits[28].at(i))].x+map_range)) && (gtx_ltz(pixel_kpix[channel_hits[28].at(i)].y-map_range, pixel_kpix[matched_channel.at(j)].y, pixel_kpix[(channel_hits[28].at(i))].y+map_range)))
+				//{
+					//three_coincidence_channel_entries->Fill(channel_hits[28].at(i));
+					//three_coincidence++;
+					////cout << 
+				//}
+				//else two_coincidence++;
+			//}		
+		//}
 		
 	  ////   Show progress
 		event_num++;
@@ -1011,11 +1031,20 @@
 	
 	cout << "Three coincidence of sensors: " << three_coincidence << endl;
 	cout << "Two coincidence of sensors: " << two_coincidence << endl;
+	for (kpix = 0; kpix < 32; kpix++)
+    {
+		if (kpixFound[kpix])
+		{
+			cout << "Number of entries in KPiX" << kpix << " = " << channel_entries[kpix][4]->GetEntries() << endl;
+		}
+	}
+	
 	//cout << "Channel entries in background = " << channel_entries[30]->GetEntries()*weight/(1024) << endl;
     //for (kpix = 0; kpix < 32; kpix++)
     //{
 		////if (kpixFound[kpix])
 		////{
+			
 			////rFile->cd();
 			////Folder1.str("");
 			////Folder1 << "KPiX_" << kpix;
