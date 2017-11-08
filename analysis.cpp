@@ -42,6 +42,7 @@
 	#include <fstream>
 	#include <XmlVariables.h>
 	#include <string.h>
+	#include <algorithm> 
 	
 	using namespace std;
 	
@@ -169,8 +170,11 @@
 	int 					num_of_channels[32] = {0};
 	TH1F*					acq_num_ext[32];
 	TH1F* 					AssignedChannelHist[32][1000];
+	TH1F* 					AssignedChannelHist_Total[32];
+	TH1F* 					trigger_difference_per_acq[32][1000];
 	//TH1F* 					AssignedNumberHist[32][1000];
 	TH1F*					event_time[32][1000];
+	TH1F*					event_time_ext[1000];
 	std::vector<int> monster_channels;
 	
 	
@@ -298,7 +302,14 @@
 	
 	// Open root file
 	rFile = new TFile(outRoot.c_str(),"recreate");
+	rFile->cd();
+	Folder1.str("");
+	Folder1 << "General";
+	rFile->mkdir(Folder1.str().c_str());
+	TDirectory *General_folder = rFile->GetDirectory(Folder1.str().c_str());
+	General_folder->cd();
 	
+		
 	TH1F *channel_entries_total= new TH1F("Channel entries_total", "Channel Entries_total; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
 	TH1F *channel_entries_total_stamped= new TH1F("Channel entries_total_stamped", "Channel_entries_total_stamped; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
 	
@@ -322,10 +333,10 @@
 	TH1F *total_selected= new TH1F("Total_response_selected", "total_response_selected; Charge/ADC; #entries", 300, -0.5, 8191.5);
 	TH1F *total_stamped_selected= new TH1F("Total_response_selected_stamped", "total_response_selected_stamped; Charge/ADC; #entries", 300, -0.5, 8191.5);
 	
-	TH1F *beam_ext_time_diff = new TH1F("beam_ext_time_diff", "beam_ext_time_diff; #Delta T/bunchClkCount; # entries", 17000, -8192, 8191.5);
-	TH1F *beam_ext_time_diff_selected = new TH1F("beam_ext_time_diff_selected", "beam_ext_time_diff_selected; #Delta T/bunchClkCount; # entries", 17000, -8192, 8191.5);
-	TH1F *beam_ext_time_diff_865 = new TH1F("beam_ext_time_diff_865", "beam_ext_time_diff_865; #Delta T/bunchClkCount; # entries", 17000, -8192, 8191.5);
-	TH1F *beam_ext_time_diff_801 = new TH1F("beam_ext_time_diff_801", "beam_ext_time_diff_801; #Delta T/bunchClkCount; # entries", 17000, -8192, 8191.5);
+	TH1F *beam_ext_time_diff = new TH1F("beam_ext_time_diff", "beam_ext_time_diff; #Delta T/bunchClkCount; # entries", 16384, -8192.5, 8191.5);
+	TH1F *beam_ext_time_diff_selected = new TH1F("beam_ext_time_diff_selected", "beam_ext_time_diff_selected; #Delta T/bunchClkCount; # entries", 16384, -8192.5, 8191.5);
+	TH1F *beam_ext_time_diff_865 = new TH1F("beam_ext_time_diff_865", "beam_ext_time_diff_865; #Delta T/bunchClkCount; # entries", 16384, -8192.5, 8191.5);
+	TH1F *beam_ext_time_diff_801 = new TH1F("beam_ext_time_diff_801", "beam_ext_time_diff_801; #Delta T/bunchClkCount; # entries", 16384, -8192.5, 8191.5);
 	
 	//TH2F *k28_k30_x_correlation = new TH2F ("x_correlation_k28_k30", "x_correlation_k28_k30; x28/column_width; x30/column_width ", 38,0.5,19,38,0.5,19); 
 	//TH2F *k28_k30_y_correlation = new TH2F ("y_correlation_k28_k30", "y_correlation_k28_k30; x28/row_width; x30/row_width", 40,-18,13,40,-18,13); 
@@ -349,9 +360,26 @@
 	
 	//TH1F *hist_matched[kpix][channel][bucket][0] = new TH1F(tmp.str().c_str(),tmp_units.str().c_str(),8192, -0.5,8191.5);
 	
-	TH1F *ExtTrigPerCycle = new TH1F ("external_triggers_per_cycle", "ext_trig_per_acq.; #ext_triggers_per_acq.cycle; #entries ",50,0.5,99.5);
+	TH1F *ExtTrigPerCycle = new TH1F ("external_triggers_per_cycle", "ext_trig_per_acq.; #ext_triggers_per_acq.cycle; #entries ",100,0.5,99.5);
 	
-	TH1F *three_coincidence_channel_entries= new TH1F("coincidence_channel_entries", "coincidence_channel_entries; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
+	TH1F *three_coincidence_channel_entries= new TH1F("three_coincidence_channel_entries", "three_coincidence_channel_entries; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
+	TH1F *full_coincidence_channel_entries= new TH1F("full_coincidence_channel_entries", "full_coincidence_channel_entries; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
+	Folder1.str("");
+	Folder1 << "Events";
+	General_folder->mkdir(Folder1.str().c_str());
+	TDirectory *gen_event_folder = General_folder->GetDirectory(Folder1.str().c_str());
+	rFile->cd(gen_event_folder->GetPath());
+	for (int events = 0; events < 1000; events++)
+	{
+		Folder1.str("");
+		Folder1 << "Event_" << events;
+		gen_event_folder->mkdir(Folder1.str().c_str());
+		TDirectory *events_folder = gen_event_folder->GetDirectory(Folder1.str().c_str());
+		events_folder->cd();
+		tmp.str("");
+		tmp << "time_distribution_external" << "_evt_" << events;
+		event_time_ext[events] = new TH1F(tmp.str().c_str(), "time_distribution_external; time/BunchClkCount; #entries", 8192, -0.5, 8191.5);
+	}
 	
 	while ( dataRead.next(&event) ) // event read to check for filled channels and kpix to reduce number of histograms.
 	{
@@ -434,8 +462,10 @@
 			trig_count[kpix][4]  = new TH1F (tmp.str().c_str(), "trig_count;  #triggered channels; #entries ",1024, -0.5, 1023.5);
 			tmp.str("");
 			tmp << "beam_ext_time_diff_" << kpix;
-			trigger_difference[kpix] = new TH1F (tmp.str().c_str(), "intern_extern_trig_diff; #Delta T/bunchClkCount; # entries", 17000, -8192, 8191.5);
-			
+			trigger_difference[kpix] = new TH1F (tmp.str().c_str(), "intern_extern_trig_diff; #Delta T/bunchClkCount; # entries", 16384, -8192.5, 8191.5);
+			tmp.str("");
+			tmp << "assigned_channels_k" << kpix << "_total";
+			AssignedChannelHist_Total[kpix] = new TH1F (tmp.str().c_str(), "assigned_channels_per_ext_trig;   #assigned_channels; #entries ",40, -0.5, 39.5);
 			
 			tmp.str("");
 			tmp << "acq_num_ext_k_" << kpix;
@@ -469,13 +499,20 @@
 			rFile->cd(event_folder->GetPath());
 			for (int events = 0; events < 1000; events++)
 			{
+				Folder1.str("");
+				Folder1 << "Event_" << events;
+				event_folder->mkdir(Folder1.str().c_str());
+				TDirectory *events_folder = event_folder->GetDirectory(Folder1.str().c_str());
+				events_folder->cd();
 				tmp.str("");
 				tmp << "time_distribution_k_" << kpix << "_evt_" << events;
-				//cout << events << endl;
-				event_time[kpix][events] = new TH1F(tmp.str().c_str(), "time_distribution; time/BunchClkCount; #entries", 100, -0.5, 8191.5);
+				event_time[kpix][events] = new TH1F(tmp.str().c_str(), "time_distribution; time/BunchClkCount; #entries", 8192, -0.5, 8191.5);
 				tmp.str("");
 				tmp << "assigned_channels_k" << kpix << "_evt_" << events;
 				AssignedChannelHist[kpix][events]  = new TH1F (tmp.str().c_str(), "assigned_channels_per_ext_trig;  external_trigger_number; #assigned_channels ",100, -0.5, 99.5);
+				tmp.str("");
+				tmp << "trigger_difference_k" << kpix << "_evt_" << events;
+				trigger_difference_per_acq[kpix][events]  = new TH1F (tmp.str().c_str(), "trigger_difference;  #entries; #Delta T/BunchClkCount ",16384, -8192.5, 8191.5);
 				//tmp.str("");
 				//tmp << "assigned_number_k" << kpix << "_evt_" << events;
 				//AssignedNumberHist[kpix][events]  = new TH1F (tmp.str().c_str(), "assigned_NumberOfChannel_per_ext_trig;  #same_assignement; #entries ",40,0,40);
@@ -585,6 +622,7 @@
 	//// beam spot selection
 	dataRead.open(argv[1]);
 	int event_num = 0;
+	int event_num_ext = -1;
 	while ( dataRead.next(&event) )
 	{
 
@@ -601,6 +639,18 @@
 			type    = sample->getSampleType();
 			tstamp  = sample->getSampleTime();
 			range   = sample->getSampleRange();
+			if (type == 2)
+			{
+				//cout << event_num << endl;
+				//cout << event_num_ext << endl;
+				if (x == 0) event_num_ext++;
+				double time = tstamp + double(value * 0.125);
+				if (event_num_ext < 1000)
+				{
+					//cout << event_num_ext <<  " " << time << endl;
+					event_time_ext[event_num_ext]->Fill(time);
+				}
+			}
 			if ( type == KpixSample::Data ) // If event is of type KPiX data
 			{
 				channel_entries[kpix][bucket]->Fill(channel, weight);
@@ -620,7 +670,10 @@
 					times_kpix_no_monster[kpix][bucket]->Fill(tstamp, weight);
 					times_kpix_no_monster[kpix][4]->Fill(tstamp, weight);
 				}
-				if (event_num < 1000) event_time[kpix][event_num]->Fill(tstamp);
+				if (event_num < 1000)
+				{
+					 event_time[kpix][event_num]->Fill(tstamp);
+				 }
 			}
 		}
 		event_num++;
@@ -634,14 +687,20 @@
 	
 	int two_coincidence = 0;
 	int three_coincidence = 0;
+	int extern_trigger_id={0};
+	
 	
 	event_num = 0;
+	
+	
 	while ( dataRead.next(&event) ) 
 	{
 		std::vector<double> time_ext;
 		std::vector<int> channel_hits[32];
 		std::vector<int> timestamp[32];
 		std::vector<int> adc_value[32];
+		std::vector<double> time_diff_kpix_ext[32];
+		std::vector<int> AssignedTrigger[32];
 		
 		//std::vector<int> Assignment_number;
 		int num_trig_count_k26[5] = {0};
@@ -680,8 +739,7 @@
 				time_external->Fill(time, weight);
 				time_ext.push_back(time);
 				//cout << "DEBUG: channel in timestmap = " << channel << endl;
-				//cout << "DEBUG: bucket in timestmap = " << bucket << endl;
-				
+				//cout << "DEBUG: bucket in timestmap = " << bucket << endl;				
 			}
 
 			
@@ -765,9 +823,6 @@
 							if (fabs(trig_diff_selected) >= fabs(tstamp-time_ext.at(j)))
 							{
 								trig_diff_selected = tstamp-time_ext.at(j);
-								//cout << "[DEBUG] TSTAMP " << tstamp << endl;
-								//cout << "[DEBUG] T_EXT " << time_ext.at(j) << endl;
-								//cout << "[DEBUG] DIFF " << trig_diff_selected << endl;
 							}
 							
 						}
@@ -776,9 +831,6 @@
 							if (fabs(trig_diff_865) >= fabs(tstamp-time_ext.at(j)))
 							{
 								trig_diff_865 = tstamp-time_ext.at(j);
-								//cout << "[DEBUG] TSTAMP " << tstamp << endl;
-								//cout << "[DEBUG] T_EXT " << time_ext.at(j) << endl;
-								//cout << "[DEBUG] DIFF " << trig_diff_selected << endl;
 							}
 						}
 						if (channel == 801)
@@ -786,15 +838,13 @@
 							if (fabs(trig_diff_801) >= fabs(tstamp-time_ext.at(j)))
 							{
 								trig_diff_801 = tstamp-time_ext.at(j);
-								//cout << "[DEBUG] TSTAMP " << tstamp << endl;
-								//cout << "[DEBUG] T_EXT " << time_ext.at(j) << endl;
-								//cout << "[DEBUG] DIFF " << trig_diff_selected << endl;
 							}
 						}
 						
 						if (fabs(trig_diff) >= fabs(tstamp-time_ext.at(j)))
 						{	
 								trig_diff = tstamp-time_ext.at(j);
+								
 								assigned_number = j;
 								//cout << "[DEBUG] TSTAMP " << tstamp << endl;
 								//cout << "[DEBUG] T_EXT " << time_ext.at(j) << endl;
@@ -802,11 +852,15 @@
 						}
 						
 					}
+					
+					time_diff_kpix_ext[kpix].push_back(trig_diff);
 					//cout << assigned_number << endl;
 					if (event_num < 1000) 
 					{
 						AssignedChannelHist[kpix][event_num]->Fill(assigned_number);
+						trigger_difference_per_acq[kpix][event_num]->Fill(trig_diff);
 					}
+					AssignedTrigger[kpix].push_back(assigned_number);
 					//Assignment_number.push_back(assigned_number);
 					if((trig_diff >= 0.5 )  && (trig_diff  <= 3.0) ) //1 and 2.625
 					{
@@ -818,7 +872,6 @@
 						if (channel_entries[kpix][4]->GetBinContent(channel) > beam_cut)
 						{
 							total_stamped_selected->Fill(value, weight);
-							
 						}
 					}
 					if((trig_diff >= -200 )  && (trig_diff  <= 200) ) 
@@ -863,12 +916,22 @@
 				
 			}
 		}
+		for (kpix = 0; kpix < 32; kpix++)
+		{
+			if (kpixFound[kpix])
+			{
+				for (uint trig = 0; trig < time_ext.size(); trig++)
+				{
+					int mycount = std::count(AssignedTrigger[kpix].begin(), AssignedTrigger[kpix].end(), trig);
+					AssignedChannelHist_Total[kpix]->Fill(mycount);
+				}
+			}
+		}
 		//for (unsigned int k = 0; k < Assignment_number.size(); k++)
 		//{
 			//cout << "DEBUG: Assignment_Number " << k << " = " << Assignment_number.at(k) << endl;
 			//if (event_num < 1000) AssignedNumberHist[kpix][event_num]->Fill(Assignment_number.at(k));
 		//}
-		
 		ExtTrigPerCycle->Fill(time_ext.size());
 		for (int q = 0; q<4; ++q)
 		{
@@ -951,10 +1014,10 @@
 		
 		
 		// ======== Triggering efficiency ===========
-		std::vector<int> matched_time;
-		std::vector<int> matched_channel;
-		int map_range = 1;
-		int time_range = 5;
+		std::vector<int> kpix_matched_time;
+		std::vector<int> kpix_matched_channel;
+		int map_range = 1.5;
+		int time_range = 0;
 		//for (int j = 0; j < adc_value[26].size(); ++j)
 		//{
 			//for (int i = 0; i < adc_value[28].size(); ++i)
@@ -969,30 +1032,41 @@
 			//}
 		//}
 		
-		//for (unsigned int j = 0; j < adc_value[26].size(); ++j)
-		//{
-			//for (unsigned int i = 0; i < adc_value[30].size(); ++i)
-			//{
-				//if ((gtx_ltz(timestamp[30].at(i)-time_range, timestamp[26].at(j), timestamp[30].at(i)+time_range)) && (gtx_ltz(pixel_kpix[channel_hits[30].at(i)].x-map_range, pixel_kpix[channel_hits[26].at(j)].x, pixel_kpix[(channel_hits[30].at(i))].x+map_range)) && (gtx_ltz(pixel_kpix[channel_hits[30].at(i)].y-map_range, pixel_kpix[channel_hits[26].at(j)].y, pixel_kpix[(channel_hits[30].at(i))].y+map_range))) 
-				//{
-					//matched_time.push_back(timestamp[26].at(j));
-					//matched_channel.push_back(channel_hits[26].at(j));
-				//}
-			//}
-		//}
-		//for (unsigned int j = 0; j < matched_time.size(); j++)
-		//{
-			//for (unsigned int i = 0; i < adc_value[28].size(); ++i)
-			//{
-				//if ((gtx_ltz(timestamp[28].at(i)-time_range, matched_time.at(j), timestamp[28].at(i)+time_range)) &&  (gtx_ltz(pixel_kpix[channel_hits[28].at(i)].x-map_range, pixel_kpix[matched_channel.at(j)].x, pixel_kpix[(channel_hits[28].at(i))].x+map_range)) && (gtx_ltz(pixel_kpix[channel_hits[28].at(i)].y-map_range, pixel_kpix[matched_channel.at(j)].y, pixel_kpix[(channel_hits[28].at(i))].y+map_range)))
-				//{
-					//three_coincidence_channel_entries->Fill(channel_hits[28].at(i));
-					//three_coincidence++;
-					////cout << 
-				//}
-				//else two_coincidence++;
-			//}		
-		//}
+		for (unsigned int j = 0; j < adc_value[26].size(); ++j)
+		{
+			for (unsigned int i = 0; i < adc_value[30].size(); ++i)
+			{
+				if ((gtx_ltz(timestamp[30].at(i)-time_range, timestamp[26].at(j), timestamp[30].at(i)+time_range)) && (gtx_ltz(pixel_kpix[channel_hits[30].at(i)].x-map_range, pixel_kpix[channel_hits[26].at(j)].x, pixel_kpix[(channel_hits[30].at(i))].x+map_range)) && (gtx_ltz(pixel_kpix[channel_hits[30].at(i)].y-map_range, pixel_kpix[channel_hits[26].at(j)].y, pixel_kpix[(channel_hits[30].at(i))].y+map_range))) 
+				{
+						kpix_matched_time.push_back(timestamp[26].at(j));
+						kpix_matched_channel.push_back(channel_hits[26].at(j));
+				}
+			}
+		}
+		for (unsigned int j = 0; j < kpix_matched_time.size(); j++)
+		{
+			for (unsigned int i = 0; i < adc_value[28].size(); ++i)
+			{
+				if ((gtx_ltz(timestamp[28].at(i)-time_range, kpix_matched_time.at(j), timestamp[28].at(i)+time_range)) &&  (gtx_ltz(pixel_kpix[channel_hits[28].at(i)].x-map_range, pixel_kpix[kpix_matched_channel.at(j)].x, pixel_kpix[(channel_hits[28].at(i))].x+map_range)) && (gtx_ltz(pixel_kpix[channel_hits[28].at(i)].y-map_range, pixel_kpix[kpix_matched_channel.at(j)].y, pixel_kpix[(channel_hits[28].at(i))].y+map_range)))
+				{
+					if (gtx_ltz(0, time_diff_kpix_ext[28].at(i), 3))
+					{
+						full_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight); // as the other numbers are in the total plot is the sum of all 3 kpix 
+						full_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight); // this also needs to be the case here. and this is when all 3 kpix have a trigger
+						full_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight); // meaning the total amount of entries is one per kpix or *3 in total
+					}
+					three_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight);
+					three_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight);
+					three_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight);
+					three_coincidence=three_coincidence+3;
+					//cout << 
+				}
+				else two_coincidence++;
+			}		
+		}
+		
+		
+		extern_trigger_id=extern_trigger_id+time_ext.size();  // Counting which global external trigger was matched to a channel
 		
 	  ////   Show progress
 		event_num++;
@@ -1004,6 +1078,23 @@
 			lastPct = currPct;
 		}
 	}
+	//for (kpix = 0; kpix < 32; kpix++)
+    //{
+		//if (kpixFound[kpix])
+		//{
+			
+			//for (uint ext_trig = 0; ext_trig < AssignedChannel_Total[kpix].size(); ext_trig++)
+			//{
+				//int trigger_counter = 0;
+				//for (int i =0; i < extern_trigger_id; ++i)
+				//{
+					//if (i == AssignedChannel_Total[kpix].at(ext_trig)) trigger_counter++;
+				//}
+				//AssignedChannelHist_Total[kpix]->Fill(trigger_counter);
+			//}
+		//}
+	//}
+	
 	////// Writing of histograms
 	//double first = (hist_calib->FindFirstBinAbove(0))* (2000.0/8192) -1;
 	//double last = hist_calib->FindLastBinAbove(0)* (2000.0/8192) +1;
