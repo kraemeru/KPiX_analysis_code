@@ -1016,7 +1016,7 @@
 		// ======== Triggering efficiency ===========
 		std::vector<int> kpix_matched_time;
 		std::vector<int> kpix_matched_channel;
-		int map_range = 1.5;
+		int map_range = 1.0;
 		int time_range = 0;
 		//for (int j = 0; j < adc_value[26].size(); ++j)
 		//{
@@ -1031,37 +1031,52 @@
 				//}
 			//}
 		//}
-		
+		double x_0;
+		double y_0;
+		double dist_r;
 		for (unsigned int j = 0; j < adc_value[26].size(); ++j)
 		{
+			x_0 = pixel_kpix[channel_hits[26].at(j)].x;
+			y_0 = pixel_kpix[channel_hits[26].at(j)].y;
 			for (unsigned int i = 0; i < adc_value[30].size(); ++i)
 			{
-				if ((gtx_ltz(timestamp[30].at(i)-time_range, timestamp[26].at(j), timestamp[30].at(i)+time_range)) && (gtx_ltz(pixel_kpix[channel_hits[30].at(i)].x-map_range, pixel_kpix[channel_hits[26].at(j)].x, pixel_kpix[(channel_hits[30].at(i))].x+map_range)) && (gtx_ltz(pixel_kpix[channel_hits[30].at(i)].y-map_range, pixel_kpix[channel_hits[26].at(j)].y, pixel_kpix[(channel_hits[30].at(i))].y+map_range))) 
+				dist_r = sqrt( pow(pixel_kpix[channel_hits[30].at(i)].x-x_0,2) + pow(pixel_kpix[channel_hits[30].at(i)].y-y_0,2) );
+				if (gtx_ltz(timestamp[30].at(i)-time_range, timestamp[26].at(j), timestamp[30].at(i)+time_range)) 
 				{
+					if (dist_r <= map_range) 
+					{
 						kpix_matched_time.push_back(timestamp[26].at(j));
 						kpix_matched_channel.push_back(channel_hits[26].at(j));
+					}
+						
 				}
 			}
 		}
 		for (unsigned int j = 0; j < kpix_matched_time.size(); j++)
 		{
+			x_0 = pixel_kpix[kpix_matched_channel.at(j)].x;
+			y_0 = pixel_kpix[kpix_matched_channel.at(j)].y;
 			for (unsigned int i = 0; i < adc_value[28].size(); ++i)
 			{
-				if ((gtx_ltz(timestamp[28].at(i)-time_range, kpix_matched_time.at(j), timestamp[28].at(i)+time_range)) &&  (gtx_ltz(pixel_kpix[channel_hits[28].at(i)].x-map_range, pixel_kpix[kpix_matched_channel.at(j)].x, pixel_kpix[(channel_hits[28].at(i))].x+map_range)) && (gtx_ltz(pixel_kpix[channel_hits[28].at(i)].y-map_range, pixel_kpix[kpix_matched_channel.at(j)].y, pixel_kpix[(channel_hits[28].at(i))].y+map_range)))
+				dist_r = sqrt( pow(pixel_kpix[channel_hits[28].at(i)].x-x_0,2) + pow(pixel_kpix[channel_hits[28].at(i)].y-y_0,2) );
+				if ((gtx_ltz(timestamp[28].at(i)-time_range, kpix_matched_time.at(j), timestamp[28].at(i)+time_range)))
 				{
-					if (gtx_ltz(0, time_diff_kpix_ext[28].at(i), 3))
+					if (dist_r <= map_range)
 					{
-						full_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight); // as the other numbers are in the total plot is the sum of all 3 kpix 
-						full_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight); // this also needs to be the case here. and this is when all 3 kpix have a trigger
-						full_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight); // meaning the total amount of entries is one per kpix or *3 in total
+						if (gtx_ltz(0, time_diff_kpix_ext[28].at(i), 3))
+						{
+							full_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight); // as the other numbers are in the total plot is the sum of all 3 kpix 
+							full_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight); // this also needs to be the case here. and this is when all 3 kpix have a trigger
+							full_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight); // meaning the total amount of entries is one per kpix or *3 in total
+						}
+						three_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight);
+						three_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight);
+						three_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight);
+						three_coincidence=three_coincidence+3;
+						//cout << 
 					}
-					three_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight);
-					three_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight);
-					three_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight);
-					three_coincidence=three_coincidence+3;
-					//cout << 
 				}
-				else two_coincidence++;
+				else two_coincidence=two_coincidence+2;
 			}		
 		}
 		
@@ -1114,12 +1129,15 @@
 	//k26_k28_y_correlation->SetOption("COLZ");
 	//k28_map->SetOption("COLZ");
 	
-	
-	
+	//double r = sqrt(pow(pixel_kpix[771].x-pixel_kpix[717].x,2) + pow(pixel_kpix[771].y-pixel_kpix[717].y,2));
+	//cout << "pixel distance: " << r << endl;
+	//r = sqrt(pow(pixel_kpix[771].x-pixel_kpix[772].x,2) + pow(pixel_kpix[771].y-pixel_kpix[772].y,2));
+	//cout << "pixel distance: " << r << endl;
 	
 	cout << endl << "Number of monster events in k26, k28, k30 = " << monster_counter_k26 << ", " << monster_counter_k28 << ", " << monster_counter_k30 << endl;
 	cout << "Number of normed monster events in k26, k28, k30 = " << monster_counter_k26*weight << ", " << monster_counter_k28*weight << ", " << monster_counter_k30*weight << endl;
 	
+	cout << "Full coincidence of sensors with external trigger: " << full_coincidence_channel_entries->GetEntries() << endl;
 	cout << "Three coincidence of sensors: " << three_coincidence << endl;
 	cout << "Two coincidence of sensors: " << two_coincidence << endl;
 	for (kpix = 0; kpix < 32; kpix++)
