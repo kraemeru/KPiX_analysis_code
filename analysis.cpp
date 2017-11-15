@@ -340,15 +340,15 @@
 	
 	//TH2F *k28_k30_x_correlation = new TH2F ("x_correlation_k28_k30", "x_correlation_k28_k30; x28/column_width; x30/column_width ", 38,0.5,19,38,0.5,19); 
 	//TH2F *k28_k30_y_correlation = new TH2F ("y_correlation_k28_k30", "y_correlation_k28_k30; x28/row_width; x30/row_width", 40,-18,13,40,-18,13); 
-	TH2F *k30_map = new TH2F ("k30_map", "k30_map; x30/column_width; x30/row_width",38,0.5,19,40,-18,13);
+	TH2F *k30_map = new TH2F ("k30_map", "k30_map; x30/column_width; x30/row_width",19,0.0,19,31,-18,13);
 	
 	//TH2F *k26_k30_x_correlation = new TH2F ("x_correlation_k26_k30", "x_correlation_k26_k30; x26/column_width; x30/column_width ", 38,0.5,19,38,0.5,19); 
 	//TH2F *k26_k30_y_correlation = new TH2F ("y_correlation_k26_k30", "y_correlation_k26_k30; x26/row_width; x30/row_width", 40,-18,13,40,-18,13); 
-	TH2F *k26_map = new TH2F ("k26_map", "k26_map; x26/column_width; x26/row_width",38,0.5,19,40,-18,13);
+	TH2F *k26_map = new TH2F ("k26_map", "k26_map; x26/column_width; x26/row_width",19,0.0,19,31,-18,13);
 	
 	//TH2F *k26_k28_x_correlation = new TH2F ("x_correlation_k26_k28", "x_correlation_k28_k30; x26/column_width; x28/column_width ", 38,0.5,19,38,0.5,19); 
 	//TH2F *k26_k28_y_correlation = new TH2F ("y_correlation_k26_k28", "y_correlation_k26_k28; x26/row_width; x28/row_width", 40,-18,13,40,-18,13); 
-	TH2F *k28_map = new TH2F ("k28_map", "k28_map; x28/column_width; x28/row_width",38,0.5,19,40,-18,13);
+	TH2F *k28_map = new TH2F ("k28_map", "k28_map; x28/column_width; x28/row_width",19,0.0,19,31,-18,13);
 	
 	TH1F *k26_x = new TH1F ("k26_x", "k26_x; x26/column_width; #entries ",38,0.5,19);
 	TH1F *k28_x = new TH1F ("k28_x", "k28_x; x28/column_width; #entries ",38,0.5,19);
@@ -1045,8 +1045,11 @@
 				{
 					if (dist_r <= map_range) 
 					{
-						kpix_matched_time.push_back(timestamp[26].at(j));
-						kpix_matched_channel.push_back(channel_hits[26].at(j));
+						//if (gtx_ltz(0, time_diff_kpix_ext[26].at(j), 3))
+						//{
+							kpix_matched_time.push_back(timestamp[26].at(j));
+							kpix_matched_channel.push_back(channel_hits[26].at(j));
+						//}
 					}
 						
 				}
