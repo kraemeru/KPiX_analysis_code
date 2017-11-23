@@ -120,10 +120,11 @@
 	string                 serial;
 	KpixSample::SampleType type;
 	TH1F                   	*hist[32][1024][4][2];
-	TH1F					*hist_stamped[32][1024][4][2];
+	TH1F					*hist_timed[32][1024][4][2];
 	//TH1F					*hist_charge[32][1024][4][2];
 	TH1F					*channel_time[32][1024][4][2];
 	TH1F					*channel_entries[32][5];
+	TH1F					*channel_entries_timed[32][5];
 	TH1F					*trigger_difference[32];
 	TH1F					*channel_entries_no_monster[32][5];
 	TH1F					*times_kpix[32][5];
@@ -311,13 +312,13 @@
 	
 		
 	TH1F *channel_entries_total= new TH1F("Channel entries_total", "Channel Entries_total; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
-	TH1F *channel_entries_total_stamped= new TH1F("Channel entries_total_stamped", "Channel_entries_total_stamped; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
+	TH1F *channel_entries_total_timed= new TH1F("Channel entries_total_timed", "Channel_entries_total_timed; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
 	
-	TH1F *channel_entries_total_stamped_400= new TH1F("Channel_entries_total_stamped400", "Channel_entries_total_stamped400; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
-	TH1F *channel_entries_total_stamped_200= new TH1F("Channel_entries_total_stamped200", "Channel_entries_total_stamped200; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
-	TH1F *channel_entries_total_stamped_100= new TH1F("Channel_entries_total_stamped100", "Channel_entries_total_stamped100; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
-	TH1F *channel_entries_total_stamped_50= new TH1F("Channel_entries_total_stamped50", "Channel_entries_total_stamped50; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
-	TH1F *channel_entries_total_stamped_10= new TH1F("Channel_entries_total_stamped10", "Channel_entries_total_stamped10; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
+	TH1F *channel_entries_total_timed_400= new TH1F("Channel_entries_total_timed400", "Channel_entries_total_timed400; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
+	TH1F *channel_entries_total_timed_200= new TH1F("Channel_entries_total_timed200", "Channel_entries_total_timed200; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
+	TH1F *channel_entries_total_timed_100= new TH1F("Channel_entries_total_timed100", "Channel_entries_total_timed100; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
+	TH1F *channel_entries_total_timed_50= new TH1F("Channel_entries_total_timed50", "Channel_entries_total_timed50; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
+	TH1F *channel_entries_total_timed_10= new TH1F("Channel_entries_total_timed10", "Channel_entries_total_timed10; KPiX_channel_address; # entries", 1024, -0.5, 1023.5);
 	
 	TH1F *time_kpix= new TH1F("time kpix", "time kpix; Time/bunchClkCount; #entries", 300, -0.5, 8191.5);
 	TH1F *time_kpix_selected= new TH1F("time kpix_selected", "time kpix_selected; Time/bunchClkCount; #entries", 300, -0.5, 8191.5);
@@ -328,10 +329,10 @@
 	TH1F *time_kpix_k30_selected= new TH1F("time_kpix_k30_selected", "time_kpix_k30_selected; Time/bunchClkCount; #entries", 300, -0.5, 8191.5);
 	
 	TH1F *total= new TH1F("Total_response", "total_response; Charge/ADC; #entries", 300, -0.5, 8191.5);
-	TH1F *total_stamped= new TH1F("Total_response_stamped", "total_response_stamped; Charge/ADC; #entries", 300, -0.5, 8191.5);
+	TH1F *total_timed= new TH1F("Total_response_timed", "total_response_timed; Charge/ADC; #entries", 300, -0.5, 8191.5);
 	
 	TH1F *total_selected= new TH1F("Total_response_selected", "total_response_selected; Charge/ADC; #entries", 300, -0.5, 8191.5);
-	TH1F *total_stamped_selected= new TH1F("Total_response_selected_stamped", "total_response_selected_stamped; Charge/ADC; #entries", 300, -0.5, 8191.5);
+	TH1F *total_timed_selected= new TH1F("Total_response_selected_timed", "total_response_selected_timed; Charge/ADC; #entries", 300, -0.5, 8191.5);
 	
 	TH1F *beam_ext_time_diff = new TH1F("beam_ext_time_diff", "beam_ext_time_diff; #Delta T/bunchClkCount; # entries", 16384, -8192.5, 8191.5);
 	TH1F *beam_ext_time_diff_selected = new TH1F("beam_ext_time_diff_selected", "beam_ext_time_diff_selected; #Delta T/bunchClkCount; # entries", 16384, -8192.5, 8191.5);
@@ -449,6 +450,9 @@
 			tmp << "Channel_entries_k_" << kpix << "_total_no_monster";
 			channel_entries_no_monster[kpix][4] = new TH1F(tmp.str().c_str(), "Channel_Entries; KPiX_channel_address; #entries/#acq.cycles", 1024,-0.5, 1023.5);
 			tmp.str("");
+			tmp << "Channel_entries_k_" << kpix << "_total_timed";
+			channel_entries_timed[kpix][4] = new TH1F(tmp.str().c_str(), "Channel_Entries_timed; KPiX_channel_address; #entries/#acq.cycles", 1024,-0.5, 1023.5);
+			tmp.str("");
 			tmp << "timestamp_kpix_k_" << kpix  << "_total";
 			times_kpix[kpix][4] = new TH1F(tmp.str().c_str(), "timestamp_kpix; time/#bunch_clk_count; #entries/#acq.cycles", 300,-0.5, 8191.5);
 			tmp.str("");
@@ -476,6 +480,9 @@
 				tmp.str("");
 				tmp << "Channel_entries_k_" << kpix << "_b" << bucket;
 				channel_entries[kpix][bucket] = new TH1F(tmp.str().c_str(), "Channel Entries; KPiX_channel_address; #entries/#acq.cycles", 1024,-0.5, 1023.5);
+				tmp.str("");
+				tmp << "Channel_entries_k_" << kpix <<  "_b" << bucket << "_timed";
+				channel_entries_timed[kpix][bucket] = new TH1F(tmp.str().c_str(), "Channel_Entries_timed; KPiX_channel_address; #entries/#acq.cycles", 1024,-0.5, 1023.5);
 				tmp.str("");
 				tmp << "Channel_entries_k_" << kpix << "_b" << bucket << "_no_monster";
 				channel_entries_no_monster[kpix][bucket] = new TH1F(tmp.str().c_str(), "Channel Entries; KPiX_channel_address; #entries/#acq.cycles", 1024,-0.5, 1023.5);
@@ -568,18 +575,18 @@
 							hist[kpix][channel][bucket][0] = new TH1F(tmp.str().c_str(),tmp_units.str().c_str(),8192, -0.5,8191.5);
 							
 							tmp.str("");
-							tmp << "hist_stamped" << "_c" << dec << setw(4) << setfill('0') << channel;
+							tmp << "hist_timed" << "_c" << dec << setw(4) << setfill('0') << channel;
 							tmp << "_b" << dec << bucket;
 							tmp << "_k" << dec << kpix;
 							tmp << "_time_cut";
 								
 							tmp_units.str("");
-							tmp_units << "hist_stamped" << "_c" << dec << setw(4) << setfill('0') << channel;
+							tmp_units << "hist_timed" << "_c" << dec << setw(4) << setfill('0') << channel;
 							tmp_units << "_b" << dec << bucket;
 							tmp_units << "_k" << dec << kpix;
 							tmp_units << "; Charge/ADC; #entries/#acq.cycles";
 						
-							hist_stamped[kpix][channel][bucket][0] = new TH1F(tmp.str().c_str(),tmp_units.str().c_str(),8192, -0.5,8191.5);
+							hist_timed[kpix][channel][bucket][0] = new TH1F(tmp.str().c_str(),tmp_units.str().c_str(),8192, -0.5,8191.5);
 							
 							tmp.str("");
 							tmp << "time" << "_c" << dec << setw(4) << setfill('0') << channel;
@@ -658,7 +665,7 @@
 				times_kpix[kpix][bucket]->Fill(tstamp, weight);
 				times_kpix[kpix][4]->Fill(tstamp, weight);
 				trigger_counter[kpix] = trigger_counter[kpix] + (1.0/num_of_channels[kpix]);
-				if (event.count() > 800)
+				if (event.count() > 700)
 				{
 					times_kpix_monster[kpix][bucket]->Fill(tstamp, weight);
 					times_kpix_monster[kpix][4]->Fill(tstamp, weight);
@@ -677,7 +684,7 @@
 			}
 		}
 		event_num++;
-		if (trigger_counter[26] > 4) cout << trigger_counter[26] << endl;
+		//if (trigger_counter[26] > 4) cout << trigger_counter[26] << endl;
 		if (kpixFound[26]) acq_num_ext[26]->Fill(trigger_counter[26]);
 		if (kpixFound[28]) acq_num_ext[28]->Fill(trigger_counter[28]);
 		if (kpixFound[30]) acq_num_ext[30]->Fill(trigger_counter[30]);
@@ -850,6 +857,15 @@
 								//cout << "[DEBUG] T_EXT " << time_ext.at(j) << endl;
 								//cout << "[DEBUG] DIFF " << trig_diff << endl;
 						}
+						else:
+						{
+							cout << "Difference not lower than before" << endl;
+							cout << "Channel time stamp = " << tstamp << endl;
+							cout << "External match = " << time_ext.at(j) << endl;
+							cout << "Old difference = " << trig_diff << endl;
+							cout << "New difference = " << tstamp-time_ext.at(j) << endl;
+							
+						}
 						
 					}
 					
@@ -862,37 +878,39 @@
 					}
 					AssignedTrigger[kpix].push_back(assigned_number);
 					//Assignment_number.push_back(assigned_number);
-					if((trig_diff >= 0.5 )  && (trig_diff  <= 3.0) ) //1 and 2.625
+					if((trig_diff >= 0.0 )  && (trig_diff  <= 3.0) )
 					{
 						
 						
-						hist_stamped[kpix][channel][bucket][0]->Fill(value, weight);
-						channel_entries_total_stamped->Fill(channel, weight);
-						total_stamped->Fill(value, weight);
+						hist_timed[kpix][channel][bucket][0]->Fill(value, weight);
+						total_timed->Fill(value, weight);
+						channel_entries_total_timed->Fill(channel, weight);
+						channel_entries_timed[kpix][bucket]->Fill(channel, weight);
+						channel_entries_timed[kpix][4]->Fill(channel, weight);
 						if (channel_entries[kpix][4]->GetBinContent(channel) > beam_cut)
 						{
-							total_stamped_selected->Fill(value, weight);
+							total_timed_selected->Fill(value, weight);
 						}
 					}
 					if((trig_diff >= -200 )  && (trig_diff  <= 200) ) 
 					{
-						channel_entries_total_stamped_200->Fill(channel, weight);
+						channel_entries_total_timed_200->Fill(channel, weight);
 					}
 					if((trig_diff >= -400 )  && (trig_diff  <= 400) )
 					{
-						channel_entries_total_stamped_400->Fill(channel, weight);
+						channel_entries_total_timed_400->Fill(channel, weight);
 					}
 					if((trig_diff >= -100 )  && (trig_diff  <= 100) ) 
 					{
-						channel_entries_total_stamped_100->Fill(channel, weight);
+						channel_entries_total_timed_100->Fill(channel, weight);
 					}
 					if((trig_diff >= -50 )  && (trig_diff  <= 50) ) 
 					{
-						channel_entries_total_stamped_50->Fill(channel, weight);
+						channel_entries_total_timed_50->Fill(channel, weight);
 					}
 					if((trig_diff >= -10 )  && (trig_diff  <= 10) )
 					{
-						channel_entries_total_stamped_10->Fill(channel, weight);
+						channel_entries_total_timed_10->Fill(channel, weight);
 					}
 					
 					
@@ -909,7 +927,8 @@
 						beam_ext_time_diff_801->Fill(trig_diff_801, weight);
 					}
 					beam_ext_time_diff->Fill(trig_diff, weight);
-					if (event.count() < 800) trigger_difference[kpix]->Fill(trig_diff, weight);
+					trigger_difference[kpix]->Fill(trig_diff, weight);
+					if (kpix != 26 && kpix != 28 && kpix != 30) cout << "Weird..." << kpix << endl;
 					
 					
 				//}
@@ -1034,54 +1053,52 @@
 		double x_0;
 		double y_0;
 		double dist_r;
-		for (unsigned int j = 0; j < adc_value[26].size(); ++j)
-		{
-			x_0 = pixel_kpix[channel_hits[26].at(j)].x;
-			y_0 = pixel_kpix[channel_hits[26].at(j)].y;
-			for (unsigned int i = 0; i < adc_value[30].size(); ++i)
-			{
-				dist_r = sqrt( pow(pixel_kpix[channel_hits[30].at(i)].x-x_0,2) + pow(pixel_kpix[channel_hits[30].at(i)].y-y_0,2) );
-				if (gtx_ltz(timestamp[30].at(i)-time_range, timestamp[26].at(j), timestamp[30].at(i)+time_range)) 
-				{
-					if (dist_r <= map_range) 
-					{
-						//if (gtx_ltz(0, time_diff_kpix_ext[26].at(j), 3))
-						//{
-							kpix_matched_time.push_back(timestamp[26].at(j));
-							kpix_matched_channel.push_back(channel_hits[26].at(j));
-						//}
-					}
+		//for (unsigned int j = 0; j < adc_value[26].size(); ++j)
+		//{
+			//x_0 = pixel_kpix[channel_hits[26].at(j)].x;
+			//y_0 = pixel_kpix[channel_hits[26].at(j)].y;
+			//for (unsigned int i = 0; i < adc_value[30].size(); ++i)
+			//{
+				//dist_r = sqrt( pow(pixel_kpix[channel_hits[30].at(i)].x-x_0,2) + pow(pixel_kpix[channel_hits[30].at(i)].y-y_0,2) );
+				//if (gtx_ltz(timestamp[30].at(i)-time_range, timestamp[26].at(j), timestamp[30].at(i)+time_range)) 
+				//{
+					//if (dist_r <= map_range) 
+					//{
+						////if (gtx_ltz(0, time_diff_kpix_ext[26].at(j), 3))
+						////{
+							//kpix_matched_time.push_back(timestamp[26].at(j));
+							//kpix_matched_channel.push_back(channel_hits[26].at(j));
+						////}
+					//}
 						
-				}
-			}
-		}
-		for (unsigned int j = 0; j < kpix_matched_time.size(); j++)
-		{
-			x_0 = pixel_kpix[kpix_matched_channel.at(j)].x;
-			y_0 = pixel_kpix[kpix_matched_channel.at(j)].y;
-			for (unsigned int i = 0; i < adc_value[28].size(); ++i)
-			{
-				dist_r = sqrt( pow(pixel_kpix[channel_hits[28].at(i)].x-x_0,2) + pow(pixel_kpix[channel_hits[28].at(i)].y-y_0,2) );
-				if ((gtx_ltz(timestamp[28].at(i)-time_range, kpix_matched_time.at(j), timestamp[28].at(i)+time_range)))
-				{
-					if (dist_r <= map_range)
-					{
-						if (gtx_ltz(0, time_diff_kpix_ext[28].at(i), 3))
-						{
-							full_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight); // as the other numbers are in the total plot is the sum of all 3 kpix 
-							full_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight); // this also needs to be the case here. and this is when all 3 kpix have a trigger
-							full_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight); // meaning the total amount of entries is one per kpix or *3 in total
-						}
-						three_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight);
-						three_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight);
-						three_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight);
-						three_coincidence=three_coincidence+3;
-						//cout << 
-					}
-				}
-				else two_coincidence=two_coincidence+2;
-			}		
-		}
+				//}
+			//}
+		//}
+		//for (unsigned int j = 0; j < kpix_matched_time.size(); j++)
+		//{
+			//x_0 = pixel_kpix[kpix_matched_channel.at(j)].x;
+			//y_0 = pixel_kpix[kpix_matched_channel.at(j)].y;
+			//for (unsigned int i = 0; i < adc_value[28].size(); ++i)
+			//{
+				//dist_r = sqrt( pow(pixel_kpix[channel_hits[28].at(i)].x-x_0,2) + pow(pixel_kpix[channel_hits[28].at(i)].y-y_0,2) );
+				//if ((gtx_ltz(timestamp[28].at(i)-time_range, kpix_matched_time.at(j), timestamp[28].at(i)+time_range)))
+				//{
+					//if (dist_r <= map_range)
+					//{
+						//if (gtx_ltz(0, time_diff_kpix_ext[28].at(i), 3))
+						//{
+							//full_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight);
+						//}
+						//three_coincidence_channel_entries->Fill(channel_hits[28].at(i), weight);
+						
+						
+						//three_coincidence=three_coincidence+1;
+						////cout << 
+					//}
+				//}
+				//else two_coincidence=two_coincidence+1;
+			//}		
+		//}
 		
 		
 		extern_trigger_id=extern_trigger_id+time_ext.size();  // Counting which global external trigger was matched to a channel
@@ -1208,9 +1225,9 @@
 								//////hist[kpix][channel][bucket][0]->Fit("langaus","ILRQ","",firstbin,lastbin);
 								//////hist[kpix][channel][bucket][0]->Fit("landau","ILRQ","",firstbin,lastbin);
 								
-								////hist_stamped[kpix][channel][bucket][0]->GetXaxis()->SetRangeUser(hist_stamped[kpix][channel][bucket][0]->FindFirstBinAbove(0), hist_stamped[kpix][channel][bucket][0]->FindLastBinAbove(0));
+								////hist_timed[kpix][channel][bucket][0]->GetXaxis()->SetRangeUser(hist_timed[kpix][channel][bucket][0]->FindFirstBinAbove(0), hist_timed[kpix][channel][bucket][0]->FindLastBinAbove(0));
 								//////hist[kpix][channel][bucket][0]->Fit("landau","ILRQ","",firstbin,lastbin);
-								////hist_stamped[kpix][channel][bucket][0]->Write();
+								////hist_timed[kpix][channel][bucket][0]->Write();
 								//////hist_charge[kpix][channel][bucket][0]->Write();
 								////channel_time[kpix][channel][bucket][0]->Write();
 								
@@ -1259,10 +1276,10 @@
 									//////TDirectory *bucket_folder = channel_folder->GetDirectory(Folder1.str().c_str());
 									//////rFile->Cd(bucket_folder->GetPath());
 									////hist[kpix][channel][bucket][0]->GetXaxis()->SetRangeUser(hist[kpix][channel][bucket][0]->FindFirstBinAbove(0), hist[kpix][channel][bucket][0]->FindLastBinAbove(0));
-									////hist_stamped[kpix][channel][bucket][0]->GetXaxis()->SetRangeUser(hist_stamped[kpix][channel][bucket][0]->FindFirstBinAbove(0), hist_stamped[kpix][channel][bucket][0]->FindLastBinAbove(0));
+									////hist_timed[kpix][channel][bucket][0]->GetXaxis()->SetRangeUser(hist_timed[kpix][channel][bucket][0]->FindFirstBinAbove(0), hist_timed[kpix][channel][bucket][0]->FindLastBinAbove(0));
 									//////hist[kpix][channel][bucket][0]->Fit("landau","q");
 									////hist[kpix][channel][bucket][0]->Write();
-									////hist_stamped[kpix][channel][bucket][0]->Write();
+									////hist_timed[kpix][channel][bucket][0]->Write();
 									//////hist_charge[kpix][channel][bucket][0]->Write();
 									////channel_time[kpix][channel][bucket][0]->Write();
 								
@@ -1288,8 +1305,8 @@
 						//{	
 							//hist[kpix][channel][bucket][0]->GetXaxis()->SetRangeUser(hist[kpix][channel][bucket][0]->FindFirstBinAbove(0), hist[kpix][channel][bucket][0]->FindLastBinAbove(0));
 							//hist[kpix][channel][bucket][0]->Write();
-							//hist_stamped[kpix][channel][bucket][0]->GetXaxis()->SetRangeUser(hist[kpix][channel][bucket][0]->FindFirstBinAbove(0), hist[kpix][channel][bucket][0]->FindLastBinAbove(0));
-							//hist_stamped[kpix][channel][bucket][0]->Write();
+							//hist_timed[kpix][channel][bucket][0]->GetXaxis()->SetRangeUser(hist[kpix][channel][bucket][0]->FindFirstBinAbove(0), hist[kpix][channel][bucket][0]->FindLastBinAbove(0));
+							//hist_timed[kpix][channel][bucket][0]->Write();
 							//channel_time[kpix][channel][bucket][0]->Write();
 							
 						//}
